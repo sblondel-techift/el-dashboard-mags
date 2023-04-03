@@ -1,0 +1,41 @@
+import os
+import pandas as pd
+
+# Spécifier le dossier contenant les fichiers
+dossier = '/Users/sblondel/Documents/Dashboard_Magasins/03-Merge_Mags_List/data inputs/'
+
+# Spécifier le nom du fichier Fichier Pannonceau
+nom_fichier_ponnonceau = 'export_mags_cleaned.csv'
+
+# Spécifier le nom du fichier Fichier Scraping
+nom_fichier_scraping = 'adresses_magasins.csv'
+
+# Lire le fichier Fichier Pannonceau
+fichier_pannonceau = pd.read_csv(os.path.join(dossier, nom_fichier_ponnonceau))
+
+# Ajouter un champ index pour le fichier Fichier Pannonceau
+fichier_pannonceau = fichier_pannonceau.reset_index()
+
+# Convertir les valeurs du champ 'Nom magasin' en minuscule
+fichier_pannonceau['Nom magasin'] = fichier_pannonceau['Nom magasin'].str.lower()
+
+# Lire le fichier Fichier Scraping
+fichier_scraping = pd.read_csv(os.path.join(dossier, nom_fichier_scraping))
+
+# Ajouter un champ index pour le fichier Fichier Scraping
+fichier_scraping = fichier_scraping.reset_index()
+
+# Convertir les valeurs du champ 'Nom magasin' en minuscule
+fichier_scraping['Nom magasin'] = fichier_scraping['Nom magasin'].str.lower()
+
+# Extraire la partie du nom de magasin qui suit 'E.Leclerc' dans le fichier Fichier Scraping
+fichier_scraping['Nom magasin'] = fichier_scraping['Nom magasin'].str.split('e.leclerc ', n=1, expand=True)[1]
+
+# Joindre les deux fichiers en utilisant le champ 'Nom magasin' comme clé de jointure
+jointure = pd.merge(fichier_pannonceau, fichier_scraping, on='Nom magasin', how='outer')
+
+# Sauvegarder le résultat dans un fichier CSV
+jointure.to_csv(os.path.join(dossier, '/Users/sblondel/Documents/Dashboard_Magasins/03-Merge_Mags_List/data output/resultat_jointure.csv'), index=False)
+
+# Afficher les premières lignes pour vérifier le résultat
+# print(jointure.head())
