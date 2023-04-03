@@ -1,0 +1,66 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pandas as pd
+
+# Lire le fichier csv contenant les URLs
+df_urls = pd.read_csv('/Users/user/Documents/Dashboard_Magasins/01-Scraping_Address_Mags/data inputs/url_mag.csv')
+
+# Récupérer les URLs dans une liste
+urls = df_urls["URL"].tolist()
+
+
+# Fonction pour extraire l'adresse d'une page
+def extract_info(url):
+    # Configuration du navigateur
+    options = Options()
+    options.headless = True
+    service = Service('/path/to/chromedriver')  # change the path to your chromedriver executable
+    driver = webdriver.Chrome(service=service, options=options)
+    driver.get(url)
+
+    try:
+        # Recherche de la balise contenant l'adresse
+        address_div = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (By.XPATH, "//div[contains(@class, 'col-card-body-title')]/following-sibling::div[1]"))
+        )
+        # Suppression des tabulations de l'adresse
+        address = address_div.text.replace("\n", " ").strip()
+
+        # Récupération du nom du magasin
+        name_div = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'col-card-body-title')]"))
+        )
+        name = name_div.text
+
+        # Retourner un dictionnaire contenant l'URL, l'adresse et le nom du magasin
+        return {"URL": url, "Adresse": address, "Nom magasin": name}
+    except:
+        # En cas d'erreur, retourner None
+        return None
+    finally:
+        driver.quit()
+
+
+# Liste pour stocker les résultats
+data = []
+
+# Nombre d'URL à extraire
+num_urls = 1  # Remplacez par le nombre d'URL souhaité
+
+# Boucle pour extraire les informations de chaque page
+for i, url in enumerate(urls[:num_urls]):
+    info = extract_info(url)
+    if info:
+        data.append(info)
+    print(f"{i + 1}/{num_urls} URL traitées")  # Affichage de l'avancement
+
+# Création d'un dataframe Pandas avec les données
+df = pd.DataFrame(data)
+
+# Enregistrement des résultats dans un fichier csv
+df.to_csv('/Users/user/Documents/Dashboard_Magasins/02-Cleaning_Mags_List/data output/export_mags_cleaned.csv', index=False)
