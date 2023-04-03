@@ -1,0 +1,19 @@
+import pandas as pd
+
+# Lire le fichier Excel
+data = pd.read_excel('/Users/sblondel/Documents/Dashboard_Magasins/02-Cleaning_Mags_List/data inputs/export_mags.xlsx')
+
+# Filtrer les lignes où le 'Code activité' est égal à '101'
+data = data.loc[data['Code activité'] == 101]
+
+# Convertir la colonne 'cp' en format texte
+data['cp'] = data['cp'].astype(str)
+
+# Ajouter des '0' devant les codes postaux qui ont moins de 5 caractères
+data['cp'] = data['cp'].str.zfill(5)
+
+# Afficher les premières lignes pour vérifier le résultat
+# print(data.head())
+
+# Sauvegarder les données nettoyées au format CSV
+data.to_csv('/Users/sblondel/Documents/Dashboard_Magasins/02-Cleaning_Mags_List/data output/export_mags_cleaned.csv', index=False)
